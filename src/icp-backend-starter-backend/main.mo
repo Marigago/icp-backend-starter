@@ -1,4 +1,43 @@
+import Debug "mo:base/Debug";
+import Principal "mo:base/Principal";
+import Result "mo:base/Result";
 
+actor Practica {
+  type Nombre =Text;
+  type DatosUsuario = (Text, Nat8, Principal);
+  type ResultadoUsuario = Result.Result<DatosUsuario, Text>;
+
+  stable var datos: DatosUsuario = ("", 0, Principal.fromText("2vxsx-fae"));
+  
+  public shared ({caller}) func leerDatosUsuario (nombre: Text, edad:Nat8): async 
+    ResultadoUsuario{
+    if (edad >= 18){
+      let datosUsuario: DatosUsuario = (nombre, edad, caller);
+      datos :=datosUsuario;
+      return #ok(datos);
+    } else {
+      #err("Lo siento no puedes continuar.");
+    };
+  };
+
+  public query func ontenerDatosUsuario(): async DatosUsuario {
+  return datos ;
+  };
+
+  public shared query ({caller}) func whoAmI(): async  Principal{
+    let nombre: Nombre = "Isaac";
+
+    return caller;
+  };
+};
+
+
+//actor Practica {
+//   public shared query (msg) func whoAmI() : async Principal {
+//     Debug.print(debug_show(msg));
+//     return msg.caller;
+//   };
+// };
 //import Text "mo:base/Text";
 //import Int "mo:base/Int";
 // Nombre:
