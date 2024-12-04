@@ -3,6 +3,9 @@ import Int "mo:base/Int";
 // Nombre:
 // Pais: 
 // Experiencias:
+import Debug "mo:base/Debug";
+import Nat "mo:base/Nat";
+import Iter "mo:base/Iter";
 
 actor Nombre {
   //stable var nombre: Text = "";
@@ -30,16 +33,53 @@ actor Nombre {
   };
 
 
-  public func leerDatosUsuario (nombre: Text, edad:Nat8): async (Text, Nat8){
-    let datosUsuario: (Text,Nat8) = (nombre, edad);
+  public func leerDatosUsuario (nombre: Text, edad:Nat8): async Bool{
+    if (edad >= 18){
+      let datosUsuario: (Text, Nat8) = (nombre, edad);
+      datos :=datosUsuario;
+      Debug.print("Guardado exitosamente.");
+      true
+    } else {
+      Debug.print("Lo siento, no puedes continuar.");
+      false
+    };
+  };
 
-    datos := datosUsuario;
 
-    datos
+  public func obtenerSaludos (indice: Nat): async Text{
+    switch(indice) {
+      case(0) { 
+        return "Hola";
+       };
+      case(1) { 
+        return "Adios";
+      };
+      case(2){
+        return "kiubu";
+      };
+      case _ {
+        return ""
+      };
+    };
+  };
+
+  public func loopContador() {
+ //   var cont: Nat8 =0;
+  //  loop{
+  //    cont +=1;
+  //    Debug.print(Nat8.toText(cont));
+  //  } while(cont < 11);
+    for (j in Iter.range(0,10)){
+      Debug.print(debug_show(j));
+    };
   };
 
   public func obtenerArreglo(indice: Nat): async Text {
     let arreglo: [Text] = ["Hola", "Adios","KIUBU"];
+
+    let saludo: Text = arreglo[0] # " " # arreglo[2];
+    Debug.print(saludo);
+
     return arreglo[indice];
   };
   
