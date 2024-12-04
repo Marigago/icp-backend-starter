@@ -14,6 +14,7 @@ actor Practica {
     if (edad >= 18){
       let datosUsuario: DatosUsuario = (nombre, edad, caller);
       datos :=datosUsuario;
+      
       return #ok(datos);
     } else {
       #err("Lo siento no puedes continuar.");
