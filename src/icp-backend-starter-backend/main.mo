@@ -3,13 +3,32 @@ import Principal "mo:base/Principal";
 import Result "mo:base/Result";
 
 actor Practica {
-  type Nombre =Text;
   type DatosUsuario = (Text, Nat8, Principal);
   type ResultadoUsuario = Result.Result<DatosUsuario, Text>;
+  type ResultadoStruct =Result.Result<Usuario,Text>;
+// structs
+  type Usuario = {
+    nombre: Text;
+    edad: Nat8;
+    identidad: Principal;
+  };
 
   stable var datos: DatosUsuario = ("", 0, Principal.fromText("2vxsx-fae"));
-  
-  public shared ({caller}) func leerDatosUsuario (nombre: Text, edad:Nat8): async 
+  stable var datosStruct: Usuario = {nombre=""; edad = 0; identidad = Principal.fromText("2vxsx-fae")};
+
+  public shared ({caller}) func leerDatosUsuarioStruct (nombre: Text, edad:Nat8): async 
+    ResultadoStruct{
+    if (edad >= 18){
+      let datosUsuario: Usuario = {nombre ; edad; identidad = caller};
+      datosStruct := datosUsuario;
+      
+      return #ok(datosStruct);
+    } else {
+      #err("Lo siento no puedes continuar.");
+    };
+  };
+
+  public shared ({caller}) func leerDatosUsuariotupla (nombre: Text, edad:Nat8): async 
     ResultadoUsuario{
     if (edad >= 18){
       let datosUsuario: DatosUsuario = (nombre, edad, caller);
@@ -26,7 +45,6 @@ actor Practica {
   };
 
   public shared query ({caller}) func whoAmI(): async  Principal{
-    let nombre: Nombre = "Isaac";
 
     return caller;
   };
