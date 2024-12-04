@@ -1,53 +1,86 @@
+import HashMap "mo:base/HashMap";
+import Text "mo:base/Text";
+import Iter "mo:base/Iter";
 import Debug "mo:base/Debug";
-import Principal "mo:base/Principal";
-import Result "mo:base/Result";
 
-actor Practica {
-  type DatosUsuario = (Text, Nat8, Principal);
-  type ResultadoUsuario = Result.Result<DatosUsuario, Text>;
-  type ResultadoStruct =Result.Result<Usuario,Text>;
-// structs
-  type Usuario = {
+actor Crud {
+  type Nombre =Text;
+  type Perro ={
     nombre: Text;
+    raza: Text;
     edad: Nat8;
-    identidad: Principal;
   };
 
-  stable var datos: DatosUsuario = ("", 0, Principal.fromText("2vxsx-fae"));
-  stable var datosStruct: Usuario = {nombre=""; edad = 0; identidad = Principal.fromText("2vxsx-fae")};
+  let perritos =HashMap.HashMap <Nombre, Perro>(0,Text.equal,Text.hash);
 
-  public shared ({caller}) func leerDatosUsuarioStruct (nombre: Text, edad:Nat8): async 
-    ResultadoStruct{
-    if (edad >= 18){
-      let datosUsuario: Usuario = {nombre ; edad; identidad = caller};
-      datosStruct := datosUsuario;
+  public func crearRegristro(nombre:Nombre, raza:Text, edad: Nat8){
+    let perrito = {nombre; raza; edad};
+    perritos.put(nombre,perrito);
+    Debug.print("Registro creado correctamente.");
+  };
+
+  public query func leerRegistro(nombre:Nombre): async ?Perro{
+    perritos.get(nombre);
+  };
+  public query func leerRegistros(): async [(Nombre, Perro)]{
+    let primerPaso: Iter.Iter<(Nombre, Perro)> = perritos.entries();
+    let segundoPaso: [(Nombre, Perro)] = Iter.toArray(primerPaso);
+    return segundoPaso;
+  };
+};
+
+
+
+// import Debug "mo:base/Debug";
+// import Principal "mo:base/Principal";
+// import Result "mo:base/Result";
+
+// actor Practica {
+//   type DatosUsuario = (Text, Nat8, Principal);
+//   type ResultadoUsuario = Result.Result<DatosUsuario, Text>;
+//   type ResultadoStruct =Result.Result<Usuario,Text>;
+// // structs
+//   type Usuario = {
+//     nombre: Text;
+//     edad: Nat8;
+//     identidad: Principal;
+//   };
+
+//   stable var datos: DatosUsuario = ("", 0, Principal.fromText("2vxsx-fae"));
+//   stable var datosStruct: Usuario = {nombre=""; edad = 0; identidad = Principal.fromText("2vxsx-fae")};
+
+//   public shared ({caller}) func leerDatosUsuarioStruct (nombre: Text, edad:Nat8): async 
+//     ResultadoStruct{
+//     if (edad >= 18){
+//       let datosUsuario: Usuario = {nombre ; edad; identidad = caller};
+//       datosStruct := datosUsuario;
       
-      return #ok(datosStruct);
-    } else {
-      #err("Lo siento no puedes continuar.");
-    };
-  };
+//       return #ok(datosStruct);
+//     } else {
+//       #err("Lo siento no puedes continuar.");
+//     };
+//   };
 
-  public shared ({caller}) func leerDatosUsuariotupla (nombre: Text, edad:Nat8): async 
-    ResultadoUsuario{
-    if (edad >= 18){
-      let datosUsuario: DatosUsuario = (nombre, edad, caller);
-      datos :=datosUsuario;
+//   public shared ({caller}) func leerDatosUsuariotupla (nombre: Text, edad:Nat8): async 
+//     ResultadoUsuario{
+//     if (edad >= 18){
+//       let datosUsuario: DatosUsuario = (nombre, edad, caller);
+//       datos :=datosUsuario;
       
-      return #ok(datos);
-    } else {
-      #err("Lo siento no puedes continuar.");
-    };
-  };
+//       return #ok(datos);
+//     } else {
+//       #err("Lo siento no puedes continuar.");
+//     };
+//   };
 
-  public query func ontenerDatosUsuario(): async DatosUsuario {
-  return datos ;
-  };
+//   public query func ontenerDatosUsuario(): async DatosUsuario {
+//   return datos ;
+//   };
 
-  public shared query ({caller}) func whoAmI(): async  Principal{
+//   public shared query ({caller}) func whoAmI(): async  Principal{
 
-    return caller;
-  };
+//     return caller;
+//   };
 };
 
 
