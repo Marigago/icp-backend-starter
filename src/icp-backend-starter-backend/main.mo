@@ -1,87 +1,88 @@
-import Text "mo:base/Text";
-import Int "mo:base/Int";
+
+//import Text "mo:base/Text";
+//import Int "mo:base/Int";
 // Nombre:
 // Pais: 
 // Experiencias:
-import Debug "mo:base/Debug";
-import Nat "mo:base/Nat";
-import Iter "mo:base/Iter";
+//import Debug "mo:base/Debug";
+//import Nat "mo:base/Nat";
+//import Iter "mo:base/Iter";
 
-actor Nombre {
+//actor Nombre {
   //stable var nombre: Text = "";
   //stable var edadUsuario: Nat8 = 0;
-  stable var contador: Int =0;
-  stable var datos: (Text, Nat8) = ("",0);
+  //stable var contador: Int =0;
+  //stable var datos: (Text, Nat8) = ("",0);
 
-  public query func obtenerfalso(): async Bool{
-    let falso: Bool = false;
-    let _caracter: Char ='b';
-    falso
-  };
+  //public query func obtenerfalso(): async Bool{
+   // let falso: Bool = false;
+   // let _caracter: Char ='b';
+    //falso
+  //};
   
-  public func aumentadorContador (): async Int {
+  //public func aumentadorContador (): async Int {
     //contador := contador + 1;
-    contador += 1;
-    return contador;
-  };
+    //contador += 1;
+    //return contador;
+ // };
 
-  public func decrementarContador(): async Int{
-    // contador := contador -1;
-    contador -= 1;
-    return contador;
+//public func decrementarContador(): async Int{
+////// contador := contador -1;
+////contador -= 1;
+////return contador;
 
-  };
-
-
-  public func leerDatosUsuario (nombre: Text, edad:Nat8): async Bool{
-    if (edad >= 18){
-      let datosUsuario: (Text, Nat8) = (nombre, edad);
-      datos :=datosUsuario;
-      Debug.print("Guardado exitosamente.");
-      true
-    } else {
-      Debug.print("Lo siento, no puedes continuar.");
-      false
-    };
-  };
+//};"
 
 
-  public func obtenerSaludos (indice: Nat): async Text{
-    switch(indice) {
-      case(0) { 
-        return "Hola";
-       };
-      case(1) { 
-        return "Adios";
-      };
-      case(2){
-        return "kiubu";
-      };
-      case _ {
-        return ""
-      };
-    };
-  };
+//  public func leerDatosUsuario (nombre: Text, edad:Nat8): async Bool{
+ //   if (edad >= 18){
+ //     let datosUsuario: (Text, Nat8) = (nombre, edad);
+  //    datos :=datosUsuario;
+ //     Debug.print("Guardado exitosamente.");
+ //     true
+  //  } else {
+  //    Debug.print("Lo siento, no puedes continuar.");
+   //   false
+  //  };
+  //};
 
-  public func loopContador() {
+
+  //public func obtenerSaludos (indice: Nat): async Text{
+  //  switch(indice) {
+   //   case(0) { 
+   //     return "Hola";
+   //    };
+   //   case(1) { 
+   //     return "Adios";
+   //   };
+   //   case(2){
+   //     return "kiubu";
+    //  };
+    //  case _ {
+    //    return ""
+    //  };
+   // };
+  //}; 
+
+ // public func loopContador() {
  //   var cont: Nat8 =0;
   //  loop{
   //    cont +=1;
   //    Debug.print(Nat8.toText(cont));
   //  } while(cont < 11);
-    for (j in Iter.range(0,10)){
-      Debug.print(debug_show(j));
-    };
-  };
+  //  for (j in Iter.range(0,10)){
+  //    Debug.print(debug_show(j));
+   // };
+  //};
 
-  public func obtenerArreglo(indice: Nat): async Text {
-    let arreglo: [Text] = ["Hola", "Adios","KIUBU"];
+  //public func obtenerArreglo(indice: Nat): async Text {
+  //  let arreglo: [Text] = ["Hola", "Adios","KIUBU"];
 
-    let saludo: Text = arreglo[0] # " " # arreglo[2];
-    Debug.print(saludo);
+  //  let saludo: Text = arreglo[0] # " " # arreglo[2];
+  //  Debug.print(saludo);
 
-    return arreglo[indice];
-  };
+  //  return arreglo[indice];
+  //};
   
   //public query func obtenerContador(): async Int {
     // return contador;
@@ -95,4 +96,4 @@ actor Nombre {
  // public func guardarNombre(name : Text) {
   //  return nombre := name;
   //};
-};
+//};
