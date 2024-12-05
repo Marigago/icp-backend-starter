@@ -1,48 +1,104 @@
-import HashMap "mo:base/HashMap";
-import Text "mo:base/Text";
-import Iter "mo:base/Iter";
-import Debug "mo:base/Debug";
-import Map "mo:map/Map";
-import {thash} "mo:map/Map";
+// import HashMap "mo:base/HashMap";
+// import Text "mo:base/Text";
+// import Iter "mo:base/Iter";
+// import Debug "mo:base/Debug";
+// import Map "mo:map/Map";
+// import {thash} "mo:map/Map";
 
+
+import HashMap "mo:base/HashMap";
+import Nat "mo:base/Nat";
+import Hash "mo:base/Hash";
 
 actor Crud {
-  type Nombre =Text;
-  type Perro ={
-    nombre: Text;
-    raza: Text;
-    edad: Nat8;
-    adoptado: Bool;
+  type Id = Nat;
+  type Tipo = {#topPart; #downPart};
+  type Color = {#color; #blanco};
+  type EstadoLimpieza = {#limpio; #sucio};
+  type Calificacion = Nat8;
+
+  public func esCalificacionValida(c : Calificacion) : async Bool {
+    c <= 10
   };
 
-  let map =Map.new<Nombre, Perro>();
-  let perritos =HashMap.HashMap <Nombre, Perro>(0,Text.equal,Text.hash);
-
-  public func crearPerrito(perro: Perro){
-    Map.set(map, thash, perro.nombre, perro);
+  type TopPart = {
+    id: Nat;
+    tipo: Tipo;
+    color: Color;
+    calificacion: Calificacion;
+    limpio: EstadoLimpieza;
   };
 
-  public func borrarPerrito( nombre: Nombre){
-    Map.delete(map, thash, nombre);
+  type DownPart = {
+    id: Nat;
+    tipo: Tipo;
+    color: Color;
+    calificacion: Calificacion;
+    limpio: EstadoLimpieza;
   };
 
-  public func crearRegristro(nombre:Nombre, raza:Text, edad: Nat8){
-    let perrito = {nombre; raza; edad; adoptado = false};
-    perritos.put(nombre,perrito);
-    Debug.print("Registro creado correctamente.");
+  // Definimos un tipo Part que puede ser TopPart o DownPart
+  type Part = {
+    #topPart: TopPart;
+    #downPart: DownPart;
   };
 
-  public query func leerRegistro(nombre:Nombre): async ?Perro{
-    perritos.get(nombre);
+  // Creamos un HashMap para almacenar las partes
+  let partsMap = HashMap.HashMap<Id, Part>(0, Nat.equal, Hash.hash);
+
+  // Función para agregar una parte
+  public func addPart(id: Id, tipo: Tipo, color: Color, calificacion: Calificacion, limpio: EstadoLimpieza) : async () {
+    let part = switch (tipo) {
+      case (#topPart) {
+        #topPart({
+          id = id;
+          tipo = tipo;
+          color = color;
+          calificacion = calificacion;
+          limpio = limpio;
+        });
+      };
+      case (#downPart) {
+        #downPart({
+          id = id;
+          tipo = tipo;
+          color = color;
+          calificacion = calificacion;
+          limpio = limpio;
+        });
+      };
+    };
+    partsMap.put(id, part);
   };
+};
+  // let map =Map.new<Nombre, Perro>();
+  // let perritos =HashMap.HashMap <Nombre, Perro>(0,Text.equal,Text.hash);
+
+  // public func crearPerrito(perro: Perro){
+  //   Map.set(map, thash, perro.nombre, perro);
+  // };
+
+  // public func borrarPerrito( nombre: Nombre){
+  //   Map.delete(map, thash, nombre);
+  // };
+
+  // public func crearRegristro(nombre:Nombre, raza:Text, edad: Nat8){
+  //   let perrito = {nombre; raza; edad; adoptado = false};
+  //   perritos.put(nombre,perrito);
+  //   Debug.print("Registro creado correctamente.");
+  // };
+
+  // public query func leerRegistro(nombre:Nombre): async ?Perro{
+  //   perritos.get(nombre);
+  // };
   
-  public query func leerRegistros(): async [(Nombre, Perro)]{
-    let primerPaso: Iter.Iter<(Nombre, Perro)> = perritos.entries();
-    let segundoPaso: [(Nombre, Perro)] = Iter.toArray(primerPaso);
-    return segundoPaso;
-  };
+  // public query func leerRegistros(): async [(Nombre, Perro)]{
+  //   let primerPaso: Iter.Iter<(Nombre, Perro)> = perritos.entries();
+  //   let segundoPaso: [(Nombre, Perro)] = Iter.toArray(primerPaso);
+  //   return segundoPaso;
+  // };
 
-  public func actualizarRegistro(nombre: Nombre): async Bool{
+  // public func actualizarRegistro(nombre: Nombre): async Bool{
   //   let perrito: Perro = perritos.get(nombre);
 
     // switch (perrito){
@@ -57,39 +113,39 @@ actor Crud {
     //   };
     //};
   
-    let perrito: ?Perro = perritos.get(nombre);
+    // let perrito: ?Perro = perritos.get(nombre);
 
-    switch (perrito){
-       case (null){
-         Debug.print("Nose encontro el registro.");
-         false
-       };
-       case(?perritook){
-        let nuevoPerrito ={nombre; raza = perritook.raza; edad = perritook.edad; adoptado =true};
-        perritos.put(nombre, nuevoPerrito);
-        true
+    // switch (perrito){
+    //    case (null){
+    //      Debug.print("Nose encontro el registro.");
+    //      false
+    //    };
+    //    case(?perritook){
+    //     let nuevoPerrito ={nombre; raza = perritook.raza; edad = perritook.edad; adoptado =true};
+    //     perritos.put(nombre, nuevoPerrito);
+    //     true
         // let nuevoPerrito: Perro = { raza = raza; nombre = perritoEncontrado.nombre; edad = perritoEncontrado.edad; adoptado = false};
         // perritos.put(perritoEncontrado.nombre, nuevoPerrito);
         // Debug.print("Perrito actualizado correctamente.");
         // true
-       };
-    };
-  };
-  public func borrarRegistro(nombre: Nombre): async Bool {
-    let perrito: ?Perro = perritos.get(nombre);
-    switch (perrito){
-       case (null){
-         Debug.print("Nose encontro el registro.");
-         false
-       };
-       case(_){
-          ignore perritos.remove(nombre);
-          Debug.print("Perrito borrado correctamente.");
-          true
-       };
-    };
-  };
-};
+//        };
+//     };
+//   };
+//   public func borrarRegistro(nombre: Nombre): async Bool {
+//     let perrito: ?Perro = perritos.get(nombre);
+//     switch (perrito){
+//        case (null){
+//          Debug.print("Nose encontro el registro.");
+//          false
+//        };
+//        case(_){
+//           ignore perritos.remove(nombre);
+//           Debug.print("Perrito borrado correctamente.");
+//           true
+//        };
+//     };
+//   };
+// };
 
 
 
