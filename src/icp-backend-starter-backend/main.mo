@@ -2,6 +2,9 @@ import HashMap "mo:base/HashMap";
 import Text "mo:base/Text";
 import Iter "mo:base/Iter";
 import Debug "mo:base/Debug";
+import Map "mo:map/Map";
+import {thash} "mo:map/Map";
+
 
 actor Crud {
   type Nombre =Text;
@@ -12,7 +15,16 @@ actor Crud {
     adoptado: Bool;
   };
 
+  let map =Map.new<Nombre, Perro>();
   let perritos =HashMap.HashMap <Nombre, Perro>(0,Text.equal,Text.hash);
+
+  public func crearPerrito(perro: Perro){
+    Map.set(map, thash, perro.nombre, perro);
+  };
+
+  public func borrarPerrito( nombre: Nombre){
+    Map.delete(map, thash, nombre);
+  };
 
   public func crearRegristro(nombre:Nombre, raza:Text, edad: Nat8){
     let perrito = {nombre; raza; edad; adoptado = false};
