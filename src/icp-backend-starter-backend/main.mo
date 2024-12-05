@@ -1,11 +1,6 @@
-// import HashMap "mo:base/HashMap";
 // import Text "mo:base/Text";
 // import Iter "mo:base/Iter";
-// import Debug "mo:base/Debug";
-// import Map "mo:map/Map";
-// import {thash} "mo:map/Map";
-
-
+import Debug "mo:base/Debug";
 import HashMap "mo:base/HashMap";
 import Nat "mo:base/Nat";
 import Hash "mo:base/Hash";
@@ -13,15 +8,19 @@ import Result "mo:base/Result";
 
 actor Crud {
   type Id = Nat;
+  type CId =Nat;
+  type ResultadoStruct = Result.Result<Part, Text>;
   type Tipo = {#topPart; #downPart};
-  type Color = {#color; #blanco};
+  type Color = {#color; #blanco; #mezclilla};
   type EstadoLimpieza = {#limpio; #sucio};
+  type NId = Id;
+  type Calificacion =Nat;
 
   type TopPart = {
     id: Nat;
     tipo: Tipo;
     color: Color;
-    calificacion: Nat;
+    calificacion: Calificacion;
     limpio: EstadoLimpieza;
   };
 
@@ -29,33 +28,215 @@ actor Crud {
     id: Nat;
     tipo: Tipo;
     color: Color;
-    calificacion: Nat;
+    calificacion: Calificacion;
     limpio: EstadoLimpieza;
   };
 
-  // Definimos un tipo Part que puede ser TopPart o DownPart
-  type Part = {
-    #topPart: TopPart;
-    #downPart: DownPart;
+  type Conjunto = {
+    topPart: NId;
+    downPart: NId;
   };
 
-  // Creamos un HashMap para almacenar las partes
-  let partsMap = HashMap.HashMap<Id, Part>(0, Nat.equal, Hash.hash);
+  
+  //
+  type Part = {
+    #topPart : {part: TopPart; creator: Principal};
+    #downPart : {part: DownPart; creator: Principal};
+  };
 
-  type ResultadoStruct = Result.Result<Part, Text>;
+  // 
+  let partsMap = HashMap.HashMap<NId, Part>(0, Nat.equal, Hash.hash);
+  let conjuntosMap = HashMap.HashMap<CId, Conjunto>(0, Nat.equal, Hash.hash);
+  //let partsTMap = HashMap.HashMap<NId, TopPart>(0, Nat.equal, Hash.hash);
+  //let partsDMap = HashMap.HashMap<NId, DownPart>(0, Nat.equal, Hash.hash);
+ 
 
-  public shared ({caller}) func leerDatosPartStruct(id: Nat, tipo: Tipo, color: Color, calificacion: Nat, limpio: EstadoLimpieza): async ResultadoStruct {
+  public shared ({caller}) func addPrend(id: NId, tipo: Tipo, color: Color, calificacion: Calificacion, limpio: EstadoLimpieza) : async Result.Result<(), Text> {
     if (calificacion >= 0 and calificacion <= 10) {
-      let partData = {id; tipo; color; calificacion; limpio};
-      let part: Part = switch (tipo) {
-        case (#downPart) #downPart(partData);
-        case (#topPart) #topPart(partData);
+      switch (partsMap.get(id)) {
+        case (null) {
+          let partData = {id; tipo; color; calificacion; limpio};
+          let part: Part = switch (tipo) {
+            case (#downPart) #downPart({part = partData; creator = caller});
+            case (#topPart) #topPart({part = partData; creator = caller});
+          };
+          partsMap.put(id, part);
+          #ok(())
+        };
+        case (?_) {
+          #err("Ya existe una prenda con este ID")
+        };
       };
-      return #ok(part);
     } else {
-      return #err("La calificación debe estar entre 0 y 10");
+      #err("La calificación debe estar entre 0 y 10")
     };
   };
+
+  public query func leerRegistro(id:NId): async ?Part{
+   partsMap.get(id);
+  };
+
+  public func actualizarEstado(id: NId): async Bool {
+    switch (partsMap.get(id)) {
+      case (null) {
+        Debug.print("No se encontró el registro.");
+        false
+      };
+      case (?part) {
+        let actualizarE = switch (part) {
+          case (#topPart(topPart)) {
+            let newData = {
+                id = topPart.part.id;
+                tipo = topPart.part.tipo;
+                color = topPart.part.color;
+                calificacion = topPart.part.calificacion;
+                limpio = if (topPart.part.limpio == #limpio){
+                  #sucio ;
+                  } else {
+                    #limpio;
+                  };
+              };
+            #topPart({
+              part = newData;
+              creator = topPart.creator;
+            })
+          };
+          case (#downPart(downPart)) {
+            let newData2 = {
+                id = downPart.part.id;
+                tipo = downPart.part.tipo;
+                color = downPart.part.color;
+                calificacion = downPart.part.calificacion;
+                limpio = if (downPart.part.limpio == #limpio){
+                  #sucio ;
+                  } else {
+                    #limpio;
+                  };
+              };
+            #downPart({
+              part = newData2;
+              creator = downPart.creator;
+            })
+          };
+        };
+        partsMap.put(id, actualizarE);
+        true
+      };
+    };
+  };
+
+  public func actualizarCalif(id: NId, nuevaCalificacion: Calificacion): async Result.Result<(), Text> {
+    if (nuevaCalificacion < 0 or nuevaCalificacion > 10) {
+      return #err("La calificación debe estar entre 0 y 10");
+    };
+
+    switch (partsMap.get(id)) {
+      case (null) {
+        Debug.print("No se encontró el registro.");
+        #err("No se encontró el registro con el ID proporcionado")
+      };
+      case (?part) {
+        let actualizarC = switch (part) {
+          case (#topPart(topPart)) {
+            let newData = {
+              id = topPart.part.id;
+              tipo = topPart.part.tipo;
+              color = topPart.part.color;
+              calificacion = nuevaCalificacion;
+              limpio = topPart.part.limpio;
+            };
+            #topPart({
+              part = newData;
+              creator = topPart.creator;
+            })
+          };
+          case (#downPart(downPart)) {
+            let newData2 = {
+              id = downPart.part.id;
+              tipo = downPart.part.tipo;
+              color = downPart.part.color;
+              calificacion = nuevaCalificacion;
+              limpio = downPart.part.limpio;
+            };
+            #downPart({
+              part = newData2;
+              creator = downPart.creator;
+            })
+          };
+        };
+        partsMap.put(id, actualizarC);
+        #ok(())
+      };
+    };
+  };
+
+  public func crearConjunto(cid: CId, topId: NId, downId: NId): async Result.Result<(), Text> {
+    switch (conjuntosMap.get(cid)) {
+      case (null) {
+        switch (partsMap.get(topId), partsMap.get(downId)) {
+          case (?topPart, ?downPart) {
+            switch (topPart, downPart) {
+              case (#topPart(_), #downPart(_)) {
+                let nuevoConjunto: Conjunto = {
+                  topPart = topId;
+                  downPart = downId;
+                };
+                conjuntosMap.put(cid, nuevoConjunto);
+                return #ok(());
+              };
+              case _ {
+                return #err("Las partes seleccionadas no son válidas para un conjunto");
+              };
+            };
+          };
+          case _ {
+            return #err("No se encontraron las partes especificadas");
+          };
+        };
+      };
+      case (?_) {
+        return #err("Ya existe un conjunto con este ID");
+      };
+    };
+  };
+
+  public query func obtenerConjunto(cid: CId): async ?Conjunto {
+    conjuntosMap.get(cid)
+  };
+  // public query func leerTPart(id:NId): async ?TopPart{
+  //  partsTMap.get(id);
+  // };
+
+  // public query func leerDPart(id:NId): async ?DownPart{
+  //  partsDMap.get(id);
+  // };
+
+  // public shared ({caller}) func addPart(id: Id, tipo: Tipo, color: Color, calificacion: Nat, limpio: EstadoLimpieza) : async Result.Result<(), Text> {
+  //   if (calificacion >= 0 and calificacion <= 10) {
+  //     let partData = {id; tipo; color; calificacion; limpio};
+  //     let part: Part = switch (tipo) {
+  //       case (#downPart) #downPart(partData);
+  //       case (#topPart) #topPart(partData);
+  //     };
+  //     partsMap.put(id, part);
+  //     #ok(())
+  //   } else {
+  //     #err("La calificación debe estar entre 0 y 10")
+  //   };
+  // };
+
+  // public shared ({caller}) func leerDatosPartStruct(id: Nat, tipo: Tipo, color: Color, calificacion: Nat, limpio: EstadoLimpieza): async ResultadoStruct {
+  //   if (calificacion >= 0 and calificacion <= 10) {
+  //     let partData = {id; tipo; color; calificacion; limpio};
+  //     let part: Part = switch (tipo) {
+  //       case (#downPart) #downPart(partData);
+  //       case (#topPart) #topPart(partData);
+  //     };
+  //     return #ok(part);
+  //   } else {
+  //     return #err("La calificación debe estar entre 0 y 10");
+  //   };
+  // };
   
   // public func addPart(id: Id, tipo: Tipo, color: Color, calificacion: Nat, limpio: EstadoLimpieza) : async () {
   //   let part = switch (tipo) {
@@ -81,29 +262,29 @@ actor Crud {
   //   partsMap := Map.set(partsMap, id, part);
   // };
   // Función para agregar una parte
-  public func addPart(id: Id, tipo: Tipo, color: Color, calificacion: Nat, limpio: EstadoLimpieza) : async () {
-    let part = switch (tipo) {
-      case (#topPart) {
-        #topPart({
-          id = id;
-          tipo = tipo;
-          color = color;
-          calificacion = calificacion;
-          limpio = limpio;
-        });
-      };
-      case (#downPart) {
-        #downPart({
-          id = id;
-          tipo = tipo;
-          color = color;
-          calificacion = calificacion;
-          limpio = limpio;
-        });
-      };
-    };
-    partsMap.put(id, part);
-  };
+//   public func addPart(id: Id, tipo: Tipo, color: Color, calificacion: Nat, limpio: EstadoLimpieza) : async () {
+//     let part = switch (tipo) {
+//       case (#topPart) {
+//         #topPart({
+//           id = id;
+//           tipo = tipo;
+//           color = color;
+//           calificacion = calificacion;
+//           limpio = limpio;
+//         });
+//       };
+//       case (#downPart) {
+//         #downPart({
+//           id = id;
+//           tipo = tipo;
+//           color = color;
+//           calificacion = calificacion;
+//           limpio = limpio;
+//         });
+//       };
+//     };
+//     partsMap.put(id, part);
+//   };
 };
   // let map =Map.new<Nombre, Perro>();
   // let perritos =HashMap.HashMap <Nombre, Perro>(0,Text.equal,Text.hash);
