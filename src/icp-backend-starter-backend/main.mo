@@ -1,4 +1,3 @@
-import Array "mo:base/Array";
 import Iter "mo:base/Iter";
 import Debug "mo:base/Debug";
 import HashMap "mo:base/HashMap";
@@ -13,9 +12,14 @@ actor Crud {
   type Tipo = {#topPart; #downPart};
   type Color = {#color; #blanco; #mezclilla};
   type EstadoLimpieza = {#limpio; #sucio};
-  type NId = Id;
+  
   type Calificacion =Nat;
-
+  type Cid = {
+    cid: CId;
+  };
+  type NId = {
+    id: Id;
+  };
   type TopPart = {
     id: Nat;
     tipo: Tipo;
@@ -45,22 +49,22 @@ actor Crud {
   };
 
   // 
-  let partsMap = HashMap.HashMap<NId, Part>(0, Nat.equal, Hash.hash);
+  let partsMap = HashMap.HashMap<Id, Part>(0, Nat.equal, Hash.hash);
   let conjuntosMap = HashMap.HashMap<CId, Conjunto>(0, Nat.equal, Hash.hash);
   //let partsTMap = HashMap.HashMap<NId, TopPart>(0, Nat.equal, Hash.hash);
   //let partsDMap = HashMap.HashMap<NId, DownPart>(0, Nat.equal, Hash.hash);
  
 
-  public shared ({caller}) func addPrend(id: NId, tipo: Tipo, color: Color, calificacion: Calificacion, limpio: EstadoLimpieza) : async Result.Result<(), Text> {
-    if (calificacion >= 0 and calificacion <= 10) {
-      switch (partsMap.get(id)) {
+  public shared ({caller}) func addPrend(prenda : TopPart) : async Result.Result<(), Text> {
+    if (prenda.calificacion >= 0 and prenda.calificacion <= 10) {
+      switch (partsMap.get(prenda.id)) {
         case (null) {
-          let partData = {id; tipo; color; calificacion; limpio};
-          let part: Part = switch (tipo) {
+          let partData = {id = prenda.id; tipo = prenda.tipo; color= prenda.color; calificacion = prenda.calificacion; limpio = prenda.limpio};
+          let part: Part = switch (prenda.tipo) {
             case (#downPart) #downPart({part = partData; creator = caller});
             case (#topPart) #topPart({part = partData; creator = caller});
           };
-          partsMap.put(id, part);
+          partsMap.put(prenda.id, part);
           #ok(())
         };
         case (?_) {
@@ -73,11 +77,11 @@ actor Crud {
   };
 
   public query func leerPrenda(id:NId): async ?Part{
-   partsMap.get(id);
+   partsMap.get(id.id);
   };
 
   public func actualizarLimpieza(id: NId): async Bool {
-    switch (partsMap.get(id)) {
+    switch (partsMap.get(id.id)) {
       case (null) {
         Debug.print("No se encontró el registro.");
         false
@@ -119,18 +123,23 @@ actor Crud {
             })
           };
         };
-        partsMap.put(id, actualizarE);
+        partsMap.put(id.id, actualizarE);
         true
       };
     };
   };
 
-  public func actualizarCalif(id: NId, nuevaCalificacion: Calificacion): async Result.Result<(), Text> {
-    if (nuevaCalificacion < 0 or nuevaCalificacion > 10) {
+  type Calif ={
+    id: Id;
+    nuevaCalificacion: Calificacion;
+  };
+
+  public func actualizarCalif(calif:Calif): async Result.Result<(), Text> {
+    if (calif.nuevaCalificacion < 0 or calif.nuevaCalificacion > 10) {
       return #err("La calificación debe estar entre 0 y 10");
     };
 
-    switch (partsMap.get(id)) {
+    switch (partsMap.get(calif.id)) {
       case (null) {
         Debug.print("No se encontró el registro.");
         #err("No se encontró el registro con el ID proporcionado")
@@ -142,7 +151,7 @@ actor Crud {
               id = topPart.part.id;
               tipo = topPart.part.tipo;
               color = topPart.part.color;
-              calificacion = nuevaCalificacion;
+              calificacion = calif.nuevaCalificacion;
               limpio = topPart.part.limpio;
             };
             #topPart({
@@ -155,7 +164,7 @@ actor Crud {
               id = downPart.part.id;
               tipo = downPart.part.tipo;
               color = downPart.part.color;
-              calificacion = nuevaCalificacion;
+              calificacion = calif.nuevaCalificacion;
               limpio = downPart.part.limpio;
             };
             #downPart({
@@ -164,24 +173,29 @@ actor Crud {
             })
           };
         };
-        partsMap.put(id, actualizarC);
+        partsMap.put(calif.id, actualizarC);
         #ok(())
       };
     };
   };
 
-  public func crearConjunto(cid: CId, topId: NId, downId: NId): async Result.Result<(), Text> {
-    switch (conjuntosMap.get(cid)) {
+  type SConjunto = {
+    cid : CId;
+    topId: NId;
+    downId: NId;
+  };
+  public func crearConjunto(conjunto : SConjunto): async Result.Result<(), Text> { 
+    switch (conjuntosMap.get(conjunto.cid)) {
       case (null) {
-        switch (partsMap.get(topId), partsMap.get(downId)) {
+        switch (partsMap.get(conjunto.topId.id), partsMap.get(conjunto.downId.id)) {
           case (?topPart, ?downPart) {
             switch (topPart, downPart) {
               case (#topPart(_), #downPart(_)) {
                 let nuevoConjunto: Conjunto = {
-                  topPart = topId;
-                  downPart = downId;
+                  topPart = conjunto.topId;
+                  downPart = conjunto.downId;
                 };
-                conjuntosMap.put(cid, nuevoConjunto);
+                conjuntosMap.put(conjunto.cid, nuevoConjunto);
                 return #ok(());
               };
               case _ {
@@ -200,8 +214,8 @@ actor Crud {
     };
   };
 
-  public query func obtenerConjunto(cid: CId): async ?Conjunto {
-    conjuntosMap.get(cid)
+  public query func obtenerConjunto(cids: Cid): async ?Conjunto {
+    conjuntosMap.get(cids.cid)
   };
 
 
@@ -216,16 +230,16 @@ actor Crud {
     );
   };
 
-  public query func prendasSucias() : async [(NId, Color)] {
+  public query func prendasSucias() : async [(Id, Color)] {
     Iter.toArray(
-      Iter.map<Part, (NId, Color)>(
+      Iter.map<Part, (Id, Color)>(
         Iter.filter<Part>(partsMap.vals(), func (part : Part) : Bool {
           switch part {
             case (#topPart(t)) { t.part.limpio == #sucio };
             case (#downPart(d)) { d.part.limpio == #sucio };
           }
         }),
-        func (part : Part) : (NId, Color) {
+        func (part : Part) : (Id, Color) {
           switch part {
             case (#topPart(t)) { (t.part.id, t.part.color) };
             case (#downPart(d)) { (d.part.id, d.part.color) };
