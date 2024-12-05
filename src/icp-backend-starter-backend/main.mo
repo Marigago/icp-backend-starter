@@ -1,5 +1,5 @@
-// import Text "mo:base/Text";
-// import Iter "mo:base/Iter";
+import Array "mo:base/Array";
+import Iter "mo:base/Iter";
 import Debug "mo:base/Debug";
 import HashMap "mo:base/HashMap";
 import Nat "mo:base/Nat";
@@ -72,11 +72,11 @@ actor Crud {
     };
   };
 
-  public query func leerRegistro(id:NId): async ?Part{
+  public query func leerPrenda(id:NId): async ?Part{
    partsMap.get(id);
   };
 
-  public func actualizarEstado(id: NId): async Bool {
+  public func actualizarLimpieza(id: NId): async Bool {
     switch (partsMap.get(id)) {
       case (null) {
         Debug.print("No se encontró el registro.");
@@ -202,6 +202,37 @@ actor Crud {
 
   public query func obtenerConjunto(cid: CId): async ?Conjunto {
     conjuntosMap.get(cid)
+  };
+
+
+  public query func prendasDispo() : async [Part] {
+    Iter.toArray(
+      Iter.filter(partsMap.vals(), func (part : Part) : Bool {
+        switch part {
+          case (#topPart(t)) { t.part.limpio == #limpio };
+          case (#downPart(d)) { d.part.limpio == #limpio };
+        };
+      })
+    );
+  };
+
+  public query func prendasSucias() : async [(NId, Color)] {
+    Iter.toArray(
+      Iter.map<Part, (NId, Color)>(
+        Iter.filter<Part>(partsMap.vals(), func (part : Part) : Bool {
+          switch part {
+            case (#topPart(t)) { t.part.limpio == #sucio };
+            case (#downPart(d)) { d.part.limpio == #sucio };
+          }
+        }),
+        func (part : Part) : (NId, Color) {
+          switch part {
+            case (#topPart(t)) { (t.part.id, t.part.color) };
+            case (#downPart(d)) { (d.part.id, d.part.color) };
+          }
+        }
+      )
+    )
   };
   // public query func leerTPart(id:NId): async ?TopPart{
   //  partsTMap.get(id);
