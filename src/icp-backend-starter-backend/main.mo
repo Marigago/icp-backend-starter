@@ -9,12 +9,13 @@ actor Crud {
     nombre: Text;
     raza: Text;
     edad: Nat8;
+    adoptado: Bool;
   };
 
   let perritos =HashMap.HashMap <Nombre, Perro>(0,Text.equal,Text.hash);
 
   public func crearRegristro(nombre:Nombre, raza:Text, edad: Nat8){
-    let perrito = {nombre; raza; edad};
+    let perrito = {nombre; raza; edad; adoptado = false};
     perritos.put(nombre,perrito);
     Debug.print("Registro creado correctamente.");
   };
@@ -26,6 +27,54 @@ actor Crud {
     let primerPaso: Iter.Iter<(Nombre, Perro)> = perritos.entries();
     let segundoPaso: [(Nombre, Perro)] = Iter.toArray(primerPaso);
     return segundoPaso;
+  };
+
+  public func actualizarRegistro(nombre: Nombre, raza:Text ): async Bool{
+  //   let perrito: Perro = perritos.get(nombre);
+
+    // switch (perrito){
+    //   case (null){
+    //     Debug.print("Nose encontro el registro.");
+    //     false
+    //   };
+    //   case(perritook){
+    //     perritook.adoptado := true;
+    //     perritos.put(nombre, perritook);
+    //     true
+    //   };
+    //};
+  
+    let perrito: ?Perro = perritos.get(nombre);
+
+    switch (perrito){
+       case (null){
+         Debug.print("Nose encontro el registro.");
+         false
+       };
+       case(?perritook){
+        let nuevoPerrito ={nombre; raza = perritook.raza; edad = perritook.edad; adoptado =True};
+        perritos.put(nombre, nuevoPerrito);
+        true
+        // let nuevoPerrito: Perro = { raza = raza; nombre = perritoEncontrado.nombre; edad = perritoEncontrado.edad; adoptado = false};
+        // perritos.put(perritoEncontrado.nombre, nuevoPerrito);
+        // Debug.print("Perrito actualizado correctamente.");
+        // true
+       };
+    };
+  };
+  public func borrarRegistro(nombre: Nombre): async Bool {
+    let perrito: ?Perro = perritos.get(nombre);
+    switch (perrito){
+       case (null){
+         Debug.print("Nose encontro el registro.");
+         false
+       };
+       case(_){
+          ignore perritos.remove(nombre);
+          Debug.print("Perrito borrado correctamente.");
+          true
+       };
+    };
   };
 };
 
