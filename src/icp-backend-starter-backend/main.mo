@@ -9,23 +9,19 @@
 import HashMap "mo:base/HashMap";
 import Nat "mo:base/Nat";
 import Hash "mo:base/Hash";
+import Result "mo:base/Result";
 
 actor Crud {
   type Id = Nat;
   type Tipo = {#topPart; #downPart};
   type Color = {#color; #blanco};
   type EstadoLimpieza = {#limpio; #sucio};
-  type Calificacion = Nat8;
-
-  public func esCalificacionValida(c : Calificacion) : async Bool {
-    c <= 10
-  };
 
   type TopPart = {
     id: Nat;
     tipo: Tipo;
     color: Color;
-    calificacion: Calificacion;
+    calificacion: Nat;
     limpio: EstadoLimpieza;
   };
 
@@ -33,7 +29,7 @@ actor Crud {
     id: Nat;
     tipo: Tipo;
     color: Color;
-    calificacion: Calificacion;
+    calificacion: Nat;
     limpio: EstadoLimpieza;
   };
 
@@ -46,8 +42,46 @@ actor Crud {
   // Creamos un HashMap para almacenar las partes
   let partsMap = HashMap.HashMap<Id, Part>(0, Nat.equal, Hash.hash);
 
+  type ResultadoStruct = Result.Result<Part, Text>;
+
+  public shared ({caller}) func leerDatosPartStruct(id: Nat, tipo: Tipo, color: Color, calificacion: Nat, limpio: EstadoLimpieza): async ResultadoStruct {
+    if (calificacion >= 0 and calificacion <= 10) {
+      let partData = {id; tipo; color; calificacion; limpio};
+      let part: Part = switch (tipo) {
+        case (#downPart) #downPart(partData);
+        case (#topPart) #topPart(partData);
+      };
+      return #ok(part);
+    } else {
+      return #err("La calificación debe estar entre 0 y 10");
+    };
+  };
+  
+  // public func addPart(id: Id, tipo: Tipo, color: Color, calificacion: Nat, limpio: EstadoLimpieza) : async () {
+  //   let part = switch (tipo) {
+  //     case (#topPart) {
+  //       #topPart({
+  //         id = id;
+  //         tipo = tipo;
+  //         color = color;
+  //         calificacion = calificacion;
+  //         limpio = limpio;
+  //       });
+  //     };
+  //     case (#downPart) {
+  //       #downPart({
+  //         id = id;
+  //         tipo = tipo;
+  //         color = color;
+  //         calificacion = calificacion;
+  //         limpio = limpio;
+  //       });
+  //     };
+  //   };
+  //   partsMap := Map.set(partsMap, id, part);
+  // };
   // Función para agregar una parte
-  public func addPart(id: Id, tipo: Tipo, color: Color, calificacion: Calificacion, limpio: EstadoLimpieza) : async () {
+  public func addPart(id: Id, tipo: Tipo, color: Color, calificacion: Nat, limpio: EstadoLimpieza) : async () {
     let part = switch (tipo) {
       case (#topPart) {
         #topPart({
