@@ -23,14 +23,14 @@ actor Crud {
   public query func leerRegistro(nombre:Nombre): async ?Perro{
     perritos.get(nombre);
   };
-  /
+  
   public query func leerRegistros(): async [(Nombre, Perro)]{
     let primerPaso: Iter.Iter<(Nombre, Perro)> = perritos.entries();
     let segundoPaso: [(Nombre, Perro)] = Iter.toArray(primerPaso);
     return segundoPaso;
   };
 
-  public func actualizarRegistro(nombre: Nombre, raza:Text ): async Bool{
+  public func actualizarRegistro(nombre: Nombre): async Bool{
   //   let perrito: Perro = perritos.get(nombre);
 
     // switch (perrito){
