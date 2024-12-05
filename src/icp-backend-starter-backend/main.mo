@@ -23,6 +23,7 @@ actor Crud {
   public query func leerRegistro(nombre:Nombre): async ?Perro{
     perritos.get(nombre);
   };
+  /
   public query func leerRegistros(): async [(Nombre, Perro)]{
     let primerPaso: Iter.Iter<(Nombre, Perro)> = perritos.entries();
     let segundoPaso: [(Nombre, Perro)] = Iter.toArray(primerPaso);
@@ -52,7 +53,7 @@ actor Crud {
          false
        };
        case(?perritook){
-        let nuevoPerrito ={nombre; raza = perritook.raza; edad = perritook.edad; adoptado =True};
+        let nuevoPerrito ={nombre; raza = perritook.raza; edad = perritook.edad; adoptado =true};
         perritos.put(nombre, nuevoPerrito);
         true
         // let nuevoPerrito: Perro = { raza = raza; nombre = perritoEncontrado.nombre; edad = perritoEncontrado.edad; adoptado = false};
