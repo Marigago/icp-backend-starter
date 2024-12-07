@@ -5,7 +5,7 @@ import Nat "mo:base/Nat";
 import Hash "mo:base/Hash";
 import Result "mo:base/Result";
 
-actor Crud {
+actor Closet {
   type Id = Nat;
   type CId =Nat;
   type ResultadoStruct = Result.Result<Part, Text>;
